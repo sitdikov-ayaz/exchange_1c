@@ -20,7 +20,7 @@ namespace ExchangeVS
 
             public string SettingsName = "";
             //public string Name = "";
-            public string Cluster = "";
+            public string Cluster = "  ";
             public string Base = "";
             public string User = "";
             public string Password = "";
