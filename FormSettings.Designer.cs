@@ -33,6 +33,8 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.TimePauseDnUp = new System.Windows.Forms.TextBox();
+            this.label20 = new System.Windows.Forms.Label();
             this.TimeOut = new System.Windows.Forms.TextBox();
             this.label18 = new System.Windows.Forms.Label();
             this.TimePauseStatus = new System.Windows.Forms.TextBox();
@@ -57,6 +59,8 @@
             this.ExchangeDir = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.TranElCount = new System.Windows.Forms.TextBox();
+            this.label19 = new System.Windows.Forms.Label();
             this.DirUpd = new System.Windows.Forms.TextBox();
             this.label17 = new System.Windows.Forms.Label();
             this.Version1C = new System.Windows.Forms.TextBox();
@@ -97,10 +101,6 @@
             this.SaveAndCloseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CloseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpProvider1 = new System.Windows.Forms.HelpProvider();
-            this.label19 = new System.Windows.Forms.Label();
-            this.TranElCount = new System.Windows.Forms.TextBox();
-            this.TimePauseDnUp = new System.Windows.Forms.TextBox();
-            this.label20 = new System.Windows.Forms.Label();
             this.toolStripContainer1.ContentPanel.SuspendLayout();
             this.toolStripContainer1.TopToolStripPanel.SuspendLayout();
             this.toolStripContainer1.SuspendLayout();
@@ -185,6 +185,22 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Общие";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // TimePauseDnUp
+            // 
+            this.TimePauseDnUp.Location = new System.Drawing.Point(350, 430);
+            this.TimePauseDnUp.Name = "TimePauseDnUp";
+            this.TimePauseDnUp.Size = new System.Drawing.Size(167, 20);
+            this.TimePauseDnUp.TabIndex = 21;
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(26, 433);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(219, 13);
+            this.label20.TabIndex = 20;
+            this.label20.Text = "Пауза между загрузкой и выгрузкой(сек)";
             // 
             // TimeOut
             // 
@@ -413,6 +429,22 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "База данных";
             // 
+            // TranElCount
+            // 
+            this.TranElCount.Location = new System.Drawing.Point(477, 105);
+            this.TranElCount.Name = "TranElCount";
+            this.TranElCount.Size = new System.Drawing.Size(30, 20);
+            this.TranElCount.TabIndex = 13;
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(325, 107);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(128, 13);
+            this.label19.TabIndex = 12;
+            this.label19.Text = "Количество эл. в транз.";
+            // 
             // DirUpd
             // 
             this.DirUpd.Location = new System.Drawing.Point(236, 130);
@@ -432,10 +464,12 @@
             // 
             // Version1C
             // 
+            this.Version1C.Enabled = false;
             this.Version1C.Location = new System.Drawing.Point(236, 105);
             this.Version1C.Name = "Version1C";
             this.Version1C.Size = new System.Drawing.Size(30, 20);
             this.Version1C.TabIndex = 9;
+            this.Version1C.Visible = false;
             // 
             // label16
             // 
@@ -445,6 +479,7 @@
             this.label16.Size = new System.Drawing.Size(71, 13);
             this.label16.TabIndex = 8;
             this.label16.Text = "Версия 1с 8.";
+            this.label16.Visible = false;
             // 
             // Password
             // 
@@ -734,7 +769,7 @@
             this.FileToolStripMenuItem});
             this.toolStrip1.Location = new System.Drawing.Point(3, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(55, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(62, 25);
             this.toolStrip1.TabIndex = 0;
             // 
             // FileToolStripMenuItem
@@ -745,68 +780,36 @@
             this.SaveAndCloseToolStripMenuItem,
             this.CloseToolStripMenuItem});
             this.FileToolStripMenuItem.Name = "FileToolStripMenuItem";
-            this.FileToolStripMenuItem.Size = new System.Drawing.Size(45, 25);
+            this.FileToolStripMenuItem.Size = new System.Drawing.Size(50, 25);
             this.FileToolStripMenuItem.Text = "Файл";
             // 
             // DownloadNodesFrom1CtoolStripMenuItem
             // 
             this.DownloadNodesFrom1CtoolStripMenuItem.Name = "DownloadNodesFrom1CtoolStripMenuItem";
-            this.DownloadNodesFrom1CtoolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.DownloadNodesFrom1CtoolStripMenuItem.Size = new System.Drawing.Size(267, 22);
             this.DownloadNodesFrom1CtoolStripMenuItem.Text = "Загрузить список узлов из 1с";
             this.DownloadNodesFrom1CtoolStripMenuItem.Click += new System.EventHandler(this.DownloadNodesFrom1CtoolStripMenuItem_Click);
             // 
             // сохранитьНастройкиToolStripMenuItem
             // 
             this.сохранитьНастройкиToolStripMenuItem.Name = "сохранитьНастройкиToolStripMenuItem";
-            this.сохранитьНастройкиToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.сохранитьНастройкиToolStripMenuItem.Size = new System.Drawing.Size(267, 22);
             this.сохранитьНастройкиToolStripMenuItem.Text = "Сохранить настройки";
             this.сохранитьНастройкиToolStripMenuItem.Click += new System.EventHandler(this.сохранитьНастройкиToolStripMenuItem_Click);
             // 
             // SaveAndCloseToolStripMenuItem
             // 
             this.SaveAndCloseToolStripMenuItem.Name = "SaveAndCloseToolStripMenuItem";
-            this.SaveAndCloseToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.SaveAndCloseToolStripMenuItem.Size = new System.Drawing.Size(267, 22);
             this.SaveAndCloseToolStripMenuItem.Text = "Сохранить настройки и закрыть";
             this.SaveAndCloseToolStripMenuItem.Click += new System.EventHandler(this.SaveAndCloseToolStripMenuItem_Click);
             // 
             // CloseToolStripMenuItem
             // 
             this.CloseToolStripMenuItem.Name = "CloseToolStripMenuItem";
-            this.CloseToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.CloseToolStripMenuItem.Size = new System.Drawing.Size(267, 22);
             this.CloseToolStripMenuItem.Text = "Закрыть";
             this.CloseToolStripMenuItem.Click += new System.EventHandler(this.CloseToolStripMenuItem_Click);
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(325, 107);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(128, 13);
-            this.label19.TabIndex = 12;
-            this.label19.Text = "Количество эл. в транз.";
-            // 
-            // TranElCount
-            // 
-            this.TranElCount.Location = new System.Drawing.Point(477, 105);
-            this.TranElCount.Name = "TranElCount";
-            this.TranElCount.Size = new System.Drawing.Size(30, 20);
-            this.TranElCount.TabIndex = 13;
-            // 
-            // TimePauseDnUp
-            // 
-            this.TimePauseDnUp.Location = new System.Drawing.Point(350, 430);
-            this.TimePauseDnUp.Name = "TimePauseDnUp";
-            this.TimePauseDnUp.Size = new System.Drawing.Size(167, 20);
-            this.TimePauseDnUp.TabIndex = 21;
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(26, 433);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(219, 13);
-            this.label20.TabIndex = 20;
-            this.label20.Text = "Пауза между загрузкой и выгрузкой(сек)";
             // 
             // FormSettings
             // 

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using System.Data;
+using System.Diagnostics;
 
 namespace ExchangeVS
 {
@@ -78,6 +79,12 @@ namespace ExchangeVS
 
 
         public static Form VarFormSettings;
+        public static string CheckingUpdate = "";
+
+        public const string UpdateDir = @"\\192.168.0.13\Visitings\Exchange\install\";
+        //public static string ExeName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name.ToUpper() + ".EXE";
+        public static string ExeName = Path.GetFileName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        public static string ExeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\";
 
     }
 
@@ -210,7 +217,7 @@ namespace ExchangeVS
             {
                 AddLog(SettingsBase.RTB, e.Message.ToString());
             }
-            //GM.V8Null(SettingsBase);
+            
            
             SettingsBase.Settings.Exchange_launched = false;
         }
@@ -274,7 +281,7 @@ namespace ExchangeVS
                             else
                             {
                                 AddLog(SettingsBase.RTB, "Ошибка при загрузке узла. " + ReadMessageResult.Message + " Узел:" + NodeName);
-                                GM.V8Null(SettingsBase);
+                                //GM.V8Null(SettingsBase);
                                 (new GM()).ConnectTo1c(SettingsBase);
                             }
                             Thread.Sleep(SettingsBase.Settings.TimePauseDnUp);
@@ -345,7 +352,7 @@ namespace ExchangeVS
             }
 
            SettingsBase.Settings.Exchange_launched = false;
-           //GM.V8Null(SettingsBase);
+           
         }
 
         public void UpLoad()
@@ -408,7 +415,7 @@ namespace ExchangeVS
                         else
                         {
                             AddLog(SettingsBase.RTB, "Ошибка при выгрузке узла 1. " + WriteMessageResult.Message + " Узел:" + NodeName);
-                            GM.V8Null(SettingsBase);
+                            //GM.V8Null(SettingsBase);
                             (new GM()).ConnectTo1c(SettingsBase);
                         }
 
@@ -505,7 +512,7 @@ namespace ExchangeVS
                 {
                     threadt.Abort();
                     AddLog(SettingsBase.RTB, "Превышен лимит выполнения операции.");
-                    GM.V8Null(SettingsBase);
+                    //GM.V8Null(SettingsBase);
                     (new GM()).ConnectTo1c(SettingsBase);
                 }
             }
@@ -715,7 +722,7 @@ namespace ExchangeVS
                 {
                     threadt.Abort();
                     AddLog(SettingsBase.RTB, "Превышен лимит выполнения операции.");
-                    GM.V8Null(SettingsBase);
+                    //GM.V8Null(SettingsBase);
                     (new GM()).ConnectTo1c(SettingsBase);
                 }
             }
@@ -843,8 +850,8 @@ namespace ExchangeVS
             }
 
             //// if (ReturnMessage.Результат == 3 //Обновление может быть выполнено в режиме Конфигуратор.
-            AddLog(SettingsBase.RTB, "Получена конфигурация...");
             GM.V8Null(SettingsBase);
+            AddLog(SettingsBase.RTB, "Получена конфигурация...");
 
             if (GM.TaskWork(1, SettingsBase))
             {
@@ -881,7 +888,7 @@ namespace ExchangeVS
                 {
                     ThisResult.Code = 99;
                     ThisResult.Message = MsgErr.Err;
-                    GM.V8Null(SettingsBase);
+                    //GM.V8Null(SettingsBase);
                 }
 
             }
@@ -1147,7 +1154,7 @@ namespace ExchangeVS
                                 else
                                 {
                                     AddLog(SettingsBase.RTB, "Ошибка при выгрузке узла 2. " + WriteMessageResult.Message + " Узел:" + NodeName);
-                                    GM.V8Null(SettingsBase);
+                                    //GM.V8Null(SettingsBase);
                                     (new GM()).ConnectTo1c(SettingsBase);
                                     if (WriteMessageResult.Message.Contains("Внешний компонент создал исключение"))
                                     {
@@ -1190,7 +1197,7 @@ namespace ExchangeVS
                                 else
                                 {
                                     AddLog(SettingsBase.RTB, "Ошибка при выгрузке узла 3. " + WriteMessageResult.Message + " Узел:" + NodeName);
-                                    GM.V8Null(SettingsBase);
+                                    //GM.V8Null(SettingsBase);
                                     (new GM()).ConnectTo1c(SettingsBase);
                                 }
                                 EditDGV(Row.Index, "Status", "", SettingsBase.DGV, SettingsBase);
@@ -1213,11 +1220,15 @@ namespace ExchangeVS
                 ////catch (InvalidCastException e) { AddLog(e.Message.ToString()); }
 
                 //int pause=0;
+
+                GM.V8Null(SettingsBase);
                 try
                 {
                     EditTabPageText(SettingsBase);
                 }
                 catch (Exception) { }
+
+
                 DateTime pause = new DateTime();
                 pause = DateTime.Now;
                 pause = pause.AddMilliseconds(SettingsBase.Settings.TimePause);
@@ -1235,7 +1246,7 @@ namespace ExchangeVS
 
             AddLog(SettingsBase.RTB, "Автообмен завершен.");
             ClosingThread(SettingsBase, 0, ThreadName);
-            //GM.V8Null(SettingsBase);
+            GM.V8Null(SettingsBase);
 
         }
 
@@ -1272,6 +1283,89 @@ namespace ExchangeVS
 
         public GM()
         {
+        }
+
+        public static void CheckUpdate(bool Manual = false)
+        {
+            string Dir = GlobalVars.UpdateDir;
+
+            if (GlobalVars.SettingsBaseList != null)
+                foreach (GlobalVars.SettingsBaseListClass CurrS in GlobalVars.SettingsBaseList)
+                {
+                    if (CurrS.Settings != null)
+                    {
+                        Dir = CurrS.Settings.DirUpd;
+                        break;
+                    }
+                }
+
+            if (!Directory.Exists(Dir))
+            {
+                if (Manual) MessageBox.Show("Каталог обновления недоступен. " + Dir);
+                return;
+            }
+
+            string CurrVer = "";
+            string UpdVer = "";
+
+            string CurrVerfile = GlobalVars.ExeDir + "Ver.txt";
+            string UpdVerfile = Dir + "Ver.txt";
+
+            string line = "";
+
+            var encoding = Encoding.GetEncoding("UTF-8");//Encoding.GetEncoding(1251);
+
+            if (File.Exists(CurrVerfile))
+                using (var src = new StreamReader(CurrVerfile, encoding: encoding))
+                {
+                    while ((line = src.ReadLine()) != null) CurrVer = line;
+                }
+
+            if (File.Exists(UpdVerfile))
+                using (var src = new StreamReader(UpdVerfile, encoding: encoding))
+                {
+                    while ((line = src.ReadLine()) != null) UpdVer = line;
+                }
+
+            if (CurrVer == UpdVer)
+            {
+                if (Manual) MessageBox.Show("Обновление не требуется.");
+                return;
+            }
+
+            string ExeRename = GlobalVars.ExeDir + "tmp.tmp";
+            string ExeNewInst = Dir + GlobalVars.ExeName;
+            string ExeNew = GlobalVars.ExeDir + "NEW.tmp";
+
+            if (File.Exists(ExeRename)) File.Delete(ExeRename);
+            //if (File.Exists(ExeNew)) File.Delete(ExeNew);
+
+            if (File.Exists(ExeNewInst))
+            {
+                File.Move(GlobalVars.ExeDir + GlobalVars.ExeName, ExeRename);
+                File.Copy(ExeNewInst, GlobalVars.ExeDir + GlobalVars.ExeName);
+                //File.Move(ExeNew, GlobalVars.ExeDir + System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + ".EXE");
+                //this.Text = "Необходимо перезапустить программу.";
+
+                if (GlobalVars.SettingsBaseList != null)
+                    foreach (GlobalVars.SettingsBaseListClass CurrB in GlobalVars.SettingsBaseList)
+                    {
+                        GM.V8Null(CurrB);
+                    }
+                try
+                {
+                    File.Copy(UpdVerfile, CurrVerfile);
+                    //MessageBox.Show(GlobalVars.ExeDir);
+                    //MessageBox.Show(GlobalVars.ExeName);
+                    Process.Start(GlobalVars.ExeDir + "updater.exe", GlobalVars.ExeName);
+                    Application.Exit();
+                }
+                catch (Exception ee) { MessageBox.Show(ee.Message); File.Delete(CurrVerfile); return; }
+
+                //Application.Exit();
+            }
+
+            //File.Copy(UpdVerfile, CurrVerfile);
         }
 
         public static void SetHeaderDGV(DataGridView DGV)
@@ -1572,26 +1666,45 @@ namespace ExchangeVS
 
                             CurrNodes.ReadXml(AppDir + "\\" + NewSettings.SettingsName + "N.xml");
 
+                            //if (CurrNodes.Columns.Contains("Code"))
+                            //{
+                            //    MessageBox.Show(" Code есть");
+                            //}
+                            //if (CurrNodes.Columns.Contains("Code1"))
+                            //{
+                            //    MessageBox.Show(" Code1 есть");
+                            //}
                             DataColumn DC = new DataColumn("Checked", typeof(bool));
                             DC.DefaultValue = true;
                             DC.Caption = "";
-                            CurrNodes.Columns.Add(DC);
+                            if (!CurrNodes.Columns.Contains("Checked"))
+                            {
+                                CurrNodes.Columns.Add(DC);
+                            }
 
                             DataColumn DCompoundState = new DataColumn("CompoundState", typeof(string));
                             DCompoundState.DefaultValue = "";
                             DCompoundState.Caption = "";
-                            CurrNodes.Columns.Add(DCompoundState);
-
+                            if (!CurrNodes.Columns.Contains("CompoundState"))
+                            {
+                                CurrNodes.Columns.Add(DCompoundState);
+                            }
+ 
                             DataColumn DCStatusFlag = new DataColumn("StatusFlag", typeof(string));
                             DCStatusFlag.DefaultValue = "";
                             DCStatusFlag.Caption = "";
-                            CurrNodes.Columns.Add(DCStatusFlag);
+                            if (!CurrNodes.Columns.Contains("StatusFlag"))
+                            {
+                                CurrNodes.Columns.Add(DCStatusFlag);
+                            }
 
                             DataColumn DCStatus = new DataColumn("Status", typeof(string));
                             DCStatus.DefaultValue = "";
                             DCStatus.Caption = "";
-                            CurrNodes.Columns.Add(DCStatus);
-
+                            if (!CurrNodes.Columns.Contains("Status"))
+                            {
+                                CurrNodes.Columns.Add(DCStatus);
+                            }
                             //DC.
 
                             CurrBaseNodes.SettingsName = NewSettings.SettingsName;
@@ -1713,16 +1826,16 @@ namespace ExchangeVS
             try
             {
 
-                if (SettingsBase.Settings.Version1C == "2")
-                {
-                    SettingsBase.v8Connector = new V82.COMConnector();
-                    //AddLog(SettingsBase.RTB, "new V82.COMConnector");
-                }
-                else
-                {
+                //if (SettingsBase.Settings.Version1C == "2")
+                //{
+                //    SettingsBase.v8Connector = new V82.COMConnector();
+                //    //AddLog(SettingsBase.RTB, "new V82.COMConnector");
+                //}
+                //else
+                //{
                     SettingsBase.v8Connector = new V83.COMConnector();
                     //AddLog(SettingsBase.RTB, "new V83.COMConnector");
-                }
+                //}
                 
                 SettingsBase.v8Connector.PoolCapacity = 1;
                 SettingsBase.v8Connector.PoolTimeout = 1;
@@ -1800,11 +1913,17 @@ namespace ExchangeVS
         public static void V8Null(GlobalVars.SettingsBaseListClass SettingsBase)
         {
 
-            try
-            {
-                Marshal.ReleaseComObject(SettingsBase.v8);
-            }
-            catch (Exception) { }
+            //try
+            //{
+            //    Marshal.ReleaseComObject(SettingsBase.v8);
+            //}
+            //catch (Exception) { }
+
+            //try
+            //{
+            //    Marshal.ReleaseComObject(SettingsBase.v8Connector);
+            //}
+            //catch (Exception) { }
 
             try
             {
@@ -1812,11 +1931,6 @@ namespace ExchangeVS
             }
             catch (Exception) { }
 
-            try
-            {
-                Marshal.ReleaseComObject(SettingsBase.v8Connector);
-            }
-            catch (Exception) { }
 
             try
             {
@@ -1837,6 +1951,8 @@ namespace ExchangeVS
                 GC.WaitForPendingFinalizers();
             }
             catch (Exception) { }
+
+
         }
 
         public string LoadNodesFromBase(GlobalVars.SettingsBaseListClass SettingsBase, System.Data.DataTable Nodes)
@@ -1878,7 +1994,7 @@ namespace ExchangeVS
                 }
             }
             catch (Exception) {  }
-            V8Null(SettingsBase);
+            //V8Null(SettingsBase);
             return ThisNodeCode;
         }
 
@@ -1910,14 +2026,14 @@ namespace ExchangeVS
 
                 dynamic v8ConnectorL;
 
-                if (SettingsBase.Settings.Version1C == "2")
-                {
-                    v8ConnectorL = new V82.COMConnector();
-                }
-                else
-                {
+                //if (SettingsBase.Settings.Version1C == "2")
+                //{
+                //    v8ConnectorL = new V82.COMConnector();
+                //}
+                //else
+                //{
                     v8ConnectorL = new V83.COMConnector();
-                }
+                //}
 
                 //v8ConnectorL = new V82.COMConnector();
 
@@ -2258,6 +2374,7 @@ namespace ExchangeVS
 
         #endregion
     }
+
 
 
 }

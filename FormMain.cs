@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Xml.Serialization;
 //using System.Runtime.InteropServices;
 
 
@@ -76,6 +77,37 @@ namespace ExchangeVS
         //        SendMessage(hwnd, (int)msg, msgPosition, IntPtr.Zero);
         //    }
         //}
+
+        void LoadFormSize()
+        {
+            //return;
+            string file = GlobalVars.ExeDir + @"MainFormSize.txt";
+
+            if (File.Exists(file))
+            {
+                Size nSize;
+                using (Stream stream = new FileStream(file, FileMode.Open))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(Size));
+                    nSize = new Size();
+                    nSize = (Size)serializer.Deserialize(stream);
+                    this.Size = nSize;
+                }
+            }
+        }
+
+        void SaveFormSize()
+        {
+            string file = GlobalVars.ExeDir + @"MainFormSize.txt";
+
+            using (Stream writer = new FileStream(file, FileMode.Create))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Size));
+                serializer.Serialize(writer, this.Size);
+            }
+
+        }
+
 
         public FormMain()
         {
@@ -238,12 +270,9 @@ namespace ExchangeVS
 
         private void FormMain_Shown(object sender, EventArgs e)
         {
+            LoadFormSize();
             lock (this)
             {
-
-
-                //GM.InitalizeNodes();
-                GM.ProgramReadSettings();
                 tabControl1.TabPages.Clear();
 
                 foreach (GlobalVars.SettingsBaseListClass CurrB in GlobalVars.SettingsBaseList)
@@ -547,6 +576,7 @@ namespace ExchangeVS
             DownLoadThreadMT.EditDGV += EditDGVEvent;
             DownLoadThreadMT.EditTabPageText += EditTabPageTextEvent;
             DownLoadThreadMT.Start();
+            GM.V8Null(GlobalVars.CurrentSettingsBase);
         }
 
         private void DownloadAndAutoExchangeOnStripMenuItem_Click(object sender, EventArgs e)
@@ -580,6 +610,7 @@ namespace ExchangeVS
             UpLoadThreadMT.EditDGV += EditDGVEvent;
             UpLoadThreadMT.EditTabPageText += EditTabPageTextEvent;
             UpLoadThreadMT.Start();
+            GM.V8Null(GlobalVars.CurrentSettingsBase);
         }
 
         private void UploadAndAutoExchangeOnStripMenuItem_Click(object sender, EventArgs e)
@@ -690,6 +721,8 @@ namespace ExchangeVS
 
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
         {
+            SaveFormSize();
+
             foreach (GlobalVars.SettingsBaseListClass CurrS in GlobalVars.SettingsBaseList)
             {
                 try
@@ -815,44 +848,10 @@ namespace ExchangeVS
             SetTabText();
         }
 
+
         private void UpdateToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string Dir = @"\\192.168.0.13\Visitings\Exchange\install\";
-            if (GlobalVars.SettingsBaseList != null)
-                foreach (GlobalVars.SettingsBaseListClass CurrS in GlobalVars.SettingsBaseList)
-                {
-                    if (CurrS.Settings != null)
-                    {
-                        Dir = CurrS.Settings.DirUpd;
-                        break;
-                    }
-                }
-            string ExeName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name.ToUpper() + ".EXE";
-            string ExeDir = System.Reflection.Assembly.GetExecutingAssembly().Location.ToUpper().Replace(ExeName, "");
-            string ExeRename = ExeDir + "tmp.tmp";
-            string ExeNewInst = Dir + ExeName;
-            string ExeNew = ExeDir + "NEW.tmp";
-
-            if (File.Exists(ExeRename)) File.Delete(ExeRename);
-            if (File.Exists(ExeNew)) File.Delete(ExeNew);
-
-            if (File.Exists(ExeNewInst))
-            {
-                File.Move(ExeDir + ExeName, ExeRename);
-                File.Copy(ExeNewInst, ExeNew);
-                File.Move(ExeNew, ExeDir + System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + ".EXE");
-                this.Text = "Необходимо перезапустить программу.";
-
-                if (GlobalVars.SettingsBaseList != null)
-                    foreach (GlobalVars.SettingsBaseListClass CurrB in GlobalVars.SettingsBaseList)
-                    {
-                        GM.V8Null(CurrB);
-                    }
-                Process.Start(ExeDir+ "updater.exe", System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + " "+ System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + ".EXE");
-                Close();
-                //Application.Exit();
-            }
-
+            GM.CheckUpdate(true);
         }
     }
 }
