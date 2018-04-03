@@ -125,11 +125,13 @@ namespace ExchangeVS
                 //catch (Exception) { }
 
 
-                if (SettingsBase == null) {
+                if (SettingsBase == null)
+                {
                     Thread.Sleep(1000);
                     continue;
                 }
-                if (SettingsBase.DGV == null) {
+                if (SettingsBase.DGV == null)
+                {
                     Thread.Sleep(1000);
                     continue;
                 }
@@ -139,7 +141,7 @@ namespace ExchangeVS
                     foreach (DataGridViewRow Row in SettingsBase.DGV.Rows)
                     {
                         if (terminateStatus) return;
-                        
+
 
                         if (Row.Cells["Code"].Value == null) continue;
                         if (Row.Cells["Code"].Value.ToString().Trim() == "") continue;
@@ -177,6 +179,7 @@ namespace ExchangeVS
         }
 
     }
+
 
     class DownLoadThread
     {

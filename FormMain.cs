@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Xml.Serialization;
+using System.Security.Permissions;
 //using System.Runtime.InteropServices;
 
 
@@ -25,6 +26,9 @@ namespace ExchangeVS
         //AutoExchangeThread MTAutoExchangeThread;
         UpLoadThread UpLoadThreadMT;
         DownLoadThread DownLoadThreadMT;
+
+        FileSystemWatcher[] statusWatchers = new FileSystemWatcher[0] { };
+        string[] statusWatchersDir = new string[0]{};
 
         //public static class ScrollAPIs
         //{
@@ -119,7 +123,8 @@ namespace ExchangeVS
 
         private void ExitStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            //this.Close();
+            Application.Exit();
         }
 
         private void SettingsStripMenuItem_Click(object sender, EventArgs e)
@@ -258,6 +263,7 @@ namespace ExchangeVS
             CurrB.TabPage = NewTab;
 
             SetupDataGridView(NewTab, CurrB);
+
 
             CurrB.StatusThr = new StatusThread();
             CurrB.StatusThr.SettingsBase = CurrB;
@@ -846,10 +852,144 @@ namespace ExchangeVS
             //GlobalVars.CurrentSettingsBase = GM.GetSettings(tabControl1.SelectedTab.Text.Replace(" - Автообмен", ""));
             this.Text = GlobalVars.CurrentSettingsBase.SettingsName;
             SetTabText();
+            StatusWatch(GlobalVars.CurrentSettingsBase);
+        }
+
+        void StatusWatch(GlobalVars.SettingsBaseListClass CurrentSettingsBase)
+        {
+            //return;
+            foreach (FileSystemWatcher FSW in statusWatchers)
+            {
+                FSW.EnableRaisingEvents = false;
+                FSW.Changed -= OnChanged;
+                FSW.Created -= OnChanged;
+                FSW.Deleted -= OnChanged;
+                FSW.Renamed -= OnChanged;
+            }
+            Array.Resize(ref statusWatchers, 0);
+            Array.Resize(ref statusWatchersDir, 0);
+
+            string FileFlag, FileFlagR, StatusFlag, FileFlagRZ, FileFlagZ, ExchangeDir;
+
+            if (CurrentSettingsBase == null) return;
+
+            foreach (DataGridViewRow Row in CurrentSettingsBase.DGV.Rows)
+            {
+                if (Row.Cells["Code"].Value == null) continue;
+                if (Row.Cells["Code"].Value.ToString().Trim() == "") continue;
+                ExchangeDir = Row.Cells["Dir"].Value.ToString().Trim();
+                if (ExchangeDir == "") ExchangeDir = CurrentSettingsBase.Settings.ExchangeDir;
+
+                FileFlag = ExchangeDir + CurrentSettingsBase.Settings.ThisNodeCode + "-" + Row.Cells["Code"].Value.ToString() + ".txt";
+                FileFlagZ = FileFlag.Replace(".txt", ".zip");
+
+                FileFlagR = ExchangeDir + Row.Cells["Code"].Value.ToString() + "-" + CurrentSettingsBase.Settings.ThisNodeCode + ".txt";
+                FileFlagRZ = FileFlagR.Replace(".txt", ".zip");
+
+                StatusFlag = "";
+                if (File.Exists(FileFlag))
+                    if (File.Exists(FileFlagZ)) StatusFlag = "Выгружено"; else StatusFlag = "Загрузка в приемнике";
+                if (File.Exists(FileFlagR))
+                {
+                    if (StatusFlag != "") StatusFlag = "куча мала";
+                    else StatusFlag = "Можно загружать";
+                }
+                //EditDGV(Row.Index, "Status", StatusFlag, SettingsBase.DGV); //Row.Cells["StatusFlag"].Value = StatusFlag;
+                EditDGV(Row.Index, "StatusFlag", StatusFlag, CurrentSettingsBase.DGV, CurrentSettingsBase);
+
+                bool NoFSW = true;
+                foreach (string FSWD in statusWatchersDir)
+                {
+                    if (FSWD == ExchangeDir)
+                    {
+                        NoFSW = false;
+                        break;
+                    }
+                }
+                if (NoFSW)
+                {
+
+                    try
+                    {
+                        FileSystemWatcher StatusWatcher = new FileSystemWatcher();
+
+
+                        StatusWatcher.Path = ExchangeDir;
+                        /* Watch for changes in LastAccess and LastWrite times, and
+                           the renaming of files or directories. */
+                        StatusWatcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite
+                           | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+                        //// Only watch text files.
+                        //StatusWatcher.Filter = "*.txt";
+
+                        // Add event handlers.
+                        StatusWatcher.Changed += new FileSystemEventHandler(OnChanged);
+                        StatusWatcher.Created += new FileSystemEventHandler(OnChanged);
+                        StatusWatcher.Deleted += new FileSystemEventHandler(OnChanged);
+                        StatusWatcher.Renamed += new RenamedEventHandler(OnChanged);
+
+
+
+                        Array.Resize(ref statusWatchers, statusWatchers.Length + 1);
+                        Array.Resize(ref statusWatchersDir, statusWatchersDir.Length + 1);
+
+                        statusWatchersDir[statusWatchersDir.Length - 1] = ExchangeDir;
+                        statusWatchers[statusWatchers.Length - 1] = StatusWatcher;
+                    }
+                    catch(Exception ee)
+                    {
+
+                    }
+
+                }
+
+            }
+
+            foreach (FileSystemWatcher FSW in statusWatchers)
+            {
+                FSW.EnableRaisingEvents = true;
+            }
+
+        }
+
+        private void OnChanged(object source, FileSystemEventArgs e)
+        {
+            string FileFlag, FileFlagR, StatusFlag, FileFlagRZ, FileFlagZ, ExchangeDir;
+
+            int cureventcount = statusWatchers.Length;
+
+            foreach (DataGridViewRow Row in GlobalVars.CurrentSettingsBase.DGV.Rows)
+            {
+                if (!(cureventcount == statusWatchers.Length)) return;
+                if (Row.Cells["Code"].Value == null) continue;
+                if (Row.Cells["Code"].Value.ToString().Trim() == "") continue;
+                ExchangeDir = Row.Cells["Dir"].Value.ToString().Trim();
+                if (ExchangeDir == "") ExchangeDir = GlobalVars.CurrentSettingsBase.Settings.ExchangeDir;
+
+                FileFlag = ExchangeDir + GlobalVars.CurrentSettingsBase.Settings.ThisNodeCode + "-" + Row.Cells["Code"].Value.ToString() + ".txt";
+                FileFlagZ = FileFlag.Replace(".txt", ".zip");
+
+                FileFlagR = ExchangeDir + Row.Cells["Code"].Value.ToString() + "-" + GlobalVars.CurrentSettingsBase.Settings.ThisNodeCode + ".txt";
+                FileFlagRZ = FileFlagR.Replace(".txt", ".zip");
+
+                StatusFlag = "";
+                if (File.Exists(FileFlag))
+                    if (File.Exists(FileFlagZ)) StatusFlag = "Выгружено"; else StatusFlag = "Загрузка в приемнике";
+                if (File.Exists(FileFlagR))
+                {
+                    if (StatusFlag != "") StatusFlag = "куча мала";
+                    else StatusFlag = "Можно загружать";
+                }
+
+                //EditDGV(Row.Index, "StatusFlag", StatusFlag, GlobalVars.CurrentSettingsBase.DGV, GlobalVars.CurrentSettingsBase);
+                EditDGV(Row.Index, "StatusFlag", StatusFlag, GlobalVars.CurrentSettingsBase.DGV, GlobalVars.CurrentSettingsBase);
+
+            }
+
         }
 
 
-        private void UpdateToolStripMenuItem_Click(object sender, EventArgs e)
+            private void UpdateToolStripMenuItem_Click(object sender, EventArgs e)
         {
             GM.CheckUpdate(true);
         }
